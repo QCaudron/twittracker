@@ -33,27 +33,33 @@ stream = tw.TwitterStream(auth=auth) # DO I NEED THIS ?
 
 
 # Results
-minutes = {}
+timestamp = {}
 users = {}
-retweets = {}
 counter = 0
 
 
 
 # Grab tweets
-iterator = stream.statuses.filter(track="Kanye")
+iterator = stream.statuses.filter(track="#Science")
 
 for i in iterator :
 
-	# Update counter
-	counter += 1
-	print counter
+	# Check that all information is encoded in the tweet
+	if np.all([field in i for field in ["timestamp_ms", "user"]]) :
 
-	# Save tweet time and username
-	minutes[int(i["timestamp_ms"]) / 60000] = minutes.get(int(i["timestamp_ms"]) / 60000, 0) + 1
-	users[i["user"]["name"]] = users.get(i["user"]["name"], 0) + 1
-	#retweets[int(i["timestamp_ms"])] = minutes.get(int(i["timestamp_ms"]), 0) + 1
 
-	# Every hundred tweets, write to disc
-	if counter % 100 == 0 :
-		pd.DataFrame(minutes.values(), index=minutes.keys(), columns=["Count"]).to_csv("minutes.csv")
+		# Update counter
+		counter += 1
+		print counter
+
+		# Save tweet time and username
+		timestamp[int(i["timestamp_ms"]) / 60000] = timestamp.get(int(i["timestamp_ms"]) / 60000, 0) + 1
+		users[i["user"]["name"]] = users.get(i["user"]["name"], 0) + 1
+		
+
+		# Every hundred tweets, write to disc and reset variables for memory
+		if counter % 100 == 0 :
+			with open("data.csv", "a") as f :
+				pd.DataFrame(minutes.values(), index=minutes.keys(), columns=["Count"]).to_csv(f, header=False)
+				timestamp = {}
+				users = {}
